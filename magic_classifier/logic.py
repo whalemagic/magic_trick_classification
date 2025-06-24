@@ -4,6 +4,7 @@ import json
 import logging
 from hashlib import md5
 from typing import Dict, List
+import os
 
 from .categories import CATEGORIES, LABEL_TRANSLATIONS
 from .classifier import load_model_and_tokenizer, batch_infer
@@ -165,8 +166,16 @@ def tag_csv_with_progress(
         df["tags_json"] = all_json
         df.to_csv(output_file, index=False)
         print(f"✔ Done! Saved to: {output_file}")
-        
-        # Сохраняем кеш
+
+        # Also save to xlsx
+        xlsx_path, _ = os.path.splitext(output_file)
+        xlsx_path += '.xlsx'
+        try:
+            df.to_excel(xlsx_path, index=False, engine='openpyxl')
+            print(f"✔ Also saved to: {xlsx_path}")
+        except Exception as e:
+            logger.error(f"Could not save to Excel file {xlsx_path}: {e}")
+
         save_cache(cache, cache_file)
         
         # Финальный отчёт
